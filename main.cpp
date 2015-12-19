@@ -33,7 +33,7 @@ static const char* button_names[] = {
 	"Y"
 };
 
-static const int gpToInputKeyMap[BUTTON_COUNT] = {KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, 0, 0, 0, 0, KEY_PAGEUP, KEY_PAGEDOWN};
+static const int gpToInputKeyMap[BUTTON_COUNT] = {KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, 0, 0, 0, BTN_MOUSE, KEY_PAGEUP, KEY_PAGEDOWN};
 
 int main(int argc, char * argv[])
 {
@@ -50,6 +50,9 @@ int main(int argc, char * argv[])
 	reporter.registerKey(KEY_RIGHT);
 	reporter.registerKey(KEY_PAGEDOWN);
 	reporter.registerKey(KEY_PAGEUP);
+	reporter.registerKey(BTN_MOUSE);
+	reporter.registerRelative(REL_X);
+	reporter.registerRelative(REL_Y);
 	reporter.start();
 	while (1) {
 //		Gamepad::update();
@@ -90,22 +93,24 @@ int main(int argc, char * argv[])
 					}
 				}
 				fflush(stdout);
-				for (j = 0; j != STICK_COUNT; ++j) {
-					for (int k = 0; k != STICKDIR_COUNT; ++k) {
-						GamepadSetRumble(static_cast<GAMEPAD_DEVICE>(i), 0.5, 0.5);
-						if (GamepadStickDirTriggered(	static_cast<GAMEPAD_DEVICE>(i),
-														static_cast<GAMEPAD_STICK>(j),
-														static_cast<GAMEPAD_STICKDIR>(k))) {
-//							logevent("[%d] stick direction:  %d -> %d", i, j, k);
-//							printf("haha");
-						}
-					}
-				}
-				float f = GamepadStickAngle(static_cast<GAMEPAD_DEVICE>(i), STICK_LEFT);
-				float f2 = GamepadStickLength(static_cast<GAMEPAD_DEVICE>(i), STICK_LEFT);
+//				for (j = 0; j != STICK_COUNT; ++j) {
+//					for (int k = 0; k != STICKDIR_COUNT; ++k) {
+//						GamepadSetRumble(static_cast<GAMEPAD_DEVICE>(i), 0.5, 0.5);
+//						if (GamepadStickDirTriggered(	static_cast<GAMEPAD_DEVICE>(i),
+//														static_cast<GAMEPAD_STICK>(j),
+//														static_cast<GAMEPAD_STICKDIR>(k))) {
+////							printf("[%d] stick direction:  %d -> %d", i, j, k);
+////							printf("haha");
+//						}
+//					}
+//				}
+//				float f = GamepadStickAngle(static_cast<GAMEPAD_DEVICE>(i), STICK_LEFT);
+//				float f2 = GamepadStickLength(static_cast<GAMEPAD_DEVICE>(i), STICK_LEFT);
 				int x,y = 0;
-				GamepadStickXY(static_cast<GAMEPAD_DEVICE>(i), STICK_LEFT, &x, &y);
-//				printf("angle: %d %d %f %f\n", x, y, f, f2);
+				const int norm = 10000;
+				GamepadStickXY(static_cast<GAMEPAD_DEVICE>(i), STICK_RIGHT, &x, &y);
+				reporter.reportRelative(x/norm, -y/norm);
+				printf("angle: %d %d %f %f\n", x, y);
 
 			}
 		}

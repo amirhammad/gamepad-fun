@@ -9,6 +9,8 @@ public:
 	~Reporter();
 	void reportKey(int code, bool value);
 	void registerKey(int code);
+	void reportRelative(int X, int Y);
+	void registerRelative(int code);
 	void start();
 	void stop();
 };

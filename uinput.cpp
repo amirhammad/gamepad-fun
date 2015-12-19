@@ -28,6 +28,7 @@ Reporter::Reporter()
 	}
 	int ret = ioctl(m_fd, UI_SET_EVBIT, EV_KEY);
 	ret = ioctl(m_fd, UI_SET_EVBIT, EV_SYN);
+	ret = ioctl(m_fd, UI_SET_EVBIT, EV_REL);
 }
 
 Reporter::~Reporter()
@@ -54,6 +55,28 @@ void Reporter::reportKey(int code, bool value)
 void Reporter::registerKey(int code)
 {
 	int ret = ioctl(m_fd, UI_SET_KEYBIT, code);
+}
+
+void Reporter::reportRelative(int X, int Y)
+{
+	struct input_event ev[2];
+
+	memset(&ev, 0, sizeof(ev));
+
+	ev[0].type = EV_REL;
+	ev[0].code = REL_X;
+	ev[0].value = X;
+	ev[1].type = EV_REL;
+	ev[1].code = REL_Y;
+	ev[1].value = Y;
+
+	int ret = write(m_fd, &ev, sizeof(ev));
+	reportSync();
+}
+
+void Reporter::registerRelative(int code)
+{
+	int ret = ioctl(m_fd, UI_SET_RELBIT, code);
 }
 
 void Reporter::start()
