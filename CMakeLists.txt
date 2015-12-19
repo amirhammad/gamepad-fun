@@ -9,6 +9,6 @@ aux_source_directory(. SRC_LIST)
 set(GAMEPAD_PATH ${CMAKE_SOURCE_DIR}/libgamepad)
 link_directories(${GAMEPAD_PATH})
 add_executable(${PROJECT_NAME} ${SRC_LIST})
-add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD COMMAND make -C ${GAMEPAD_PATH})
-target_link_libraries(${PROJECT_NAME} gamepad jack)
+add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD COMMAND make -C ${GAMEPAD_PATH} libgamepad.so)
+target_link_libraries(${PROJECT_NAME} gamepad)
 
