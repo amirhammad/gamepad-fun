@@ -1,5 +1,4 @@
 #include "gamepad.h"
-#include "uinput.h"
 
 #include <iostream>
 #include <thread>
@@ -33,33 +32,21 @@ static const char* button_names[] = {
 	"Y"
 };
 
-static const int gpToInputKeyMap[BUTTON_COUNT] = {KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, 0, 0, 0, BTN_MOUSE, KEY_PAGEUP, KEY_PAGEDOWN};
-
 int main(int argc, char * argv[])
 {
-	int err;
-//	jack_init();
 	GamepadInit();
-//	std::thread thread;
-//	Gamepad::init();
-//	Gamepad gp0(0);
-	Reporter reporter;
-	reporter.registerKey(KEY_UP);
-	reporter.registerKey(KEY_DOWN);
-	reporter.registerKey(KEY_LEFT);
-	reporter.registerKey(KEY_RIGHT);
-	reporter.registerKey(KEY_PAGEDOWN);
-	reporter.registerKey(KEY_PAGEUP);
-	reporter.registerKey(BTN_MOUSE);
-	reporter.registerRelative(REL_X);
-	reporter.registerRelative(REL_Y);
-	reporter.start();
+	if (!GamepadIsConnected(GAMEPAD_0)) {
+		fprintf(stderr, "Gamepad is not connected\n");
+		return 1;
+	}
+	int fd = ::open("/dev/pi-blaster", O_WRONLY);
+	if (fd < 0) {
+		fprintf(stderr, "Cannot open pi-blaster\n");
+		return 1;
+	}
 	while (1) {
-//		Gamepad::update();
 		GamepadUpdate();
-//		update(GAMEPAD_0);
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));
-//		std::cout << gp0.isConnected() << std::endl;
 
 		int i,j;
 		for (i = 0; i != GAMEPAD_COUNT; ++i) {
@@ -78,9 +65,9 @@ int main(int argc, char * argv[])
 						trig = true;
 					}
 					if (trig) {
-						reporter.reportKey(gpToInputKeyMap[j], value);
+//						reporter.reportKey(gpToInputKeyMap[j], value);
 						if (j == BUTTON_START && value) {
-							reporter.stop();
+//							reporter.stop();
 							return 0;
 						}
 					}
@@ -107,10 +94,21 @@ int main(int argc, char * argv[])
 //				float f = GamepadStickAngle(static_cast<GAMEPAD_DEVICE>(i), STICK_LEFT);
 //				float f2 = GamepadStickLength(static_cast<GAMEPAD_DEVICE>(i), STICK_LEFT);
 				int x,y = 0;
-				const int norm = 10000;
 				GamepadStickXY(static_cast<GAMEPAD_DEVICE>(i), STICK_RIGHT, &x, &y);
-				reporter.reportRelative(x/norm, -y/norm);
-				printf("angle: %d %d %f %f\n", x, y);
+				x = -x;
+				if (x >= 0) {
+					const uint32_t norm = 1 << 16;
+					float pwmVal = x/(float)norm;
+					char setupString[128];
+					const int numberOfGpioPin = 18;
+					int count = sprintf(setupString, "%d=%5.4f\n", numberOfGpioPin, pwmVal);
+					int ret = ::write(fd, setupString, count);
+					if (ret < 0) {
+						fprintf(stderr, "Error writing to pi-blaster \nerrno=%d\n", errno);
+						return 1;
+					}
+				}
+//				printf("angle: %d %d %f %f\n", x, y, (float)x/norm, (float)y/norm);
 
 			}
 		}
