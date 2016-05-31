@@ -98,10 +98,12 @@ int main(int argc, char * argv[])
 				GamepadStickXY(static_cast<GAMEPAD_DEVICE>(i), STICK_RIGHT, &x, &y);
 				x = -x;
 				if (x >= 0) {
-					const uint32_t norm = 1 << 16;
+					const uint32_t norm = 1 << 15;
 					float pwmVal = x/(float)norm;
 					char setupString[128];
 					const int numberOfGpioPin = 18;
+					if (pwmVal > 1) pwmVal = 1;
+					if (pwmVal < 0) pwmVal = 0;
 					int count = sprintf(setupString, "%d=%5.4f\n", numberOfGpioPin, pwmVal);
 					int ret = ::write(fd, setupString, count);
 					if (ret < 0) {
