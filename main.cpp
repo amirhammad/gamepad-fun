@@ -11,7 +11,8 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <math.h>
-#include "libgamepad/gamepad.h"
+
+#include <gamepad.h>
 
 static const char* button_names[] = {
 	"d-pad up",
